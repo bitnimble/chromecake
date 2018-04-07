@@ -11,7 +11,7 @@ export class StreamServer {
 
 	constructor(private port: number, private file: string, private avsTemplate: string, private enhance: boolean = false) {
 	}
-	
+
 	escapeFfmpeg(input: string) {
 		return input.split("\\").join("\\\\\\\\")
 			.split(":").join("\\\\\\:")
@@ -22,7 +22,7 @@ export class StreamServer {
 			.split(" ").join("\\\\\\ ");
 	}
 
-	hasSubs(file: string) {
+	getSubType(file: string) {
 		let result = child_process.spawnSync("ffprobe", [
 			"-v", "error",
 			"-select_streams", "s:0",
@@ -30,7 +30,18 @@ export class StreamServer {
 			"-of", "csv=p=0",
 			file
 		]);
-		const subs = String(result.stdout).trim()
+		return String(result.stdout).trim();
+	}
+
+	hasImageSubs(file: string) {
+		const subs = this.getSubType(file);
+		console.log(subs);
+		// TODO: find what the normal vobsub type is
+		return subs === 'hdmv_pgs_subtitle';
+	}
+
+	hasTextSubs(file: string) {
+		const subs = this.getSubType(file);
 		console.log(subs);
 		return subs !== '' && subs !== 'hdmv_pgs_subtitle';
 	}
@@ -87,12 +98,19 @@ export class StreamServer {
 					"-i", this.file
 				];
 			}
-			
+
 			const needsVideoEncode = this.needsVideoEncode(this.file);
+
+			if (needsVideoEncode && this.hasImageSubs(this.file)) {
+				finalOptions = finalOptions.concat([
+					"-filter_complex", "[0:v][0:s]overlay[v]",
+					"-map", "[v]",
+					"-map", "0:a"
+				]);
+			}
+
 			if (needsVideoEncode) {
 				finalOptions = finalOptions.concat([
-					// "-c:v", "libx265",
-					// "-crf", "15"
 					"-c:v", "hevc_nvenc",
 					"-preset", "llhq",
 					"-rc", "constqp",
@@ -109,7 +127,7 @@ export class StreamServer {
 					"-b:a", "320k"
 				]);
 			}
-			if (needsVideoEncode && this.hasSubs(this.file)) {
+			if (needsVideoEncode && this.hasTextSubs(this.file)) {
 				finalOptions = finalOptions.concat([
 					"-vf", "subtitles=" + this.escapeFfmpeg(this.file)
 				]);
@@ -120,7 +138,7 @@ export class StreamServer {
 				"-movflags", "frag_keyframe",
 				"pipe:1"
 			]);
-			
+
 			console.log('ffmpeg ' + finalOptions.join(' '));
 			this.ffmpeg = child_process.spawn('ffmpeg', finalOptions);
 			this.ffmpeg.stdout.pipe(res);

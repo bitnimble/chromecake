@@ -12,7 +12,7 @@ export class StreamServerQueue {
 
 	async playNext() {
 		await this.stop();
-		
+
 		const nextMedia = this.queue.shift();
 		if (!nextMedia) {
 			console.log('No more media in the queue!');
