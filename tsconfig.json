@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"target": "es2015",
+		"outDir": "out",
+		"baseUrl": "src",
+		"rootDir": "src",
+		"sourceMap": true
+	},
+	"exclude": [
+		"node_modules"
+	]
+}

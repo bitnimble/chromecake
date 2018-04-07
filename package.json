@@ -1,0 +1,13 @@
+{
+  "name": "chromecake",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^9.6.1",
+    "chromecast-player": "^0.2.3",
+    "find-process": "^1.1.0",
+    "internal-ip": "^3.0.1",
+    "temp-write": "^3.4.0"
+  }
+}
