@@ -18,7 +18,7 @@ The default configuration is set up for streaming anime, on a Windows machine wi
  -> Chromecast
 ```
 
-# Building
+## Building
 Prerequisites:
 1. Install nodeJS + npm
 2. Install yarn (`npm install -g yarn`)
@@ -30,7 +30,7 @@ Then, compile Chromecake:
 4. Build Chromecake to the `/out` directory with `tsc`
 5. Manually copy over `template.avs` from `/src` to `/out` (to be fixed)
 
-# Running
+## Running
 1. Ensure `ffmpeg` and `ffprobe` are installed and available in PATH
 2. Install Avisynth (or disable enhancement in the source code)
 3. Have an NVIDIA graphics card (or swap to the CPU encoder in the source code)
