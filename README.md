@@ -1,8 +1,8 @@
 # Chromecake
 
-Chromecake will allow you to two-click stream media to a Chromecast (right click -> "Bake and cast"), with built-in image enhancement for anime/cartoon/line-art video.
+Chromecake will allow you to two-click stream media to a Chromecast (right click -> "Bake and cast"), with built-in image enhancement for anime/cartoon/line-art video, all in real time.
 
-Support for stream the codecs and formats used in anime fansub circles is poor, so this project aims to resolve that. Similar applications (such as Videostream for Chrome or Castnow) don't work well, especially with ASS subtitles; the vast majority of animations and complex styles do not work properly.
+Support for streaming the codecs and formats used in anime fansub circles is poor, so this project aims to resolve that. Similar applications (such as Videostream for Chrome or Castnow) don't work well, especially with ASS subtitles; the vast majority of animations and complex styles do not work properly.
 
 The default configuration is set up for streaming anime, on a Windows machine with an NVIDIA GPU:
 ```
