@@ -38,12 +38,16 @@ const rl = require('readline').createInterface({
 });
 
 rl.on('SIGINT', () => process.emit('SIGINT'));
-process.on('SIGINT', () => process.exit());
 
 internalIp.v4().then(ip => {
 	const address = `http://${ip}:${port}/video.mp4`;
 	function chromecastPlay() {
 		player.launch(address, function (err, p) {
+			process.on('SIGINT', () => {
+				p.stop();
+				process.exit();
+			});
+
 			if (err) console.log(err);
 
 			p.once('playing', () => {
