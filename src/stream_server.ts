@@ -4,6 +4,20 @@ import * as fs from 'fs';
 import * as findProcess from 'find-process';
 import * as tempWrite from 'temp-write';
 
+type SubtitleTags = {
+	title: string;
+	language: string;
+};
+
+type SubtitleTrack = {
+	index: number;
+	subIndex: number;
+	tags: SubtitleTags;
+};
+
+type SubList = {
+	streams: SubtitleTrack[];
+};
 
 export class StreamServer {
 	ffmpeg: child_process.ChildProcess;
@@ -22,8 +36,39 @@ export class StreamServer {
 			.split(" ").join("\\\\\\ ");
 	}
 
+	lowerContains(s: string, compare: string) {
+		if (!s) {
+			return false;
+		}
+		return s.toLowerCase().indexOf(compare) !== -1;
+	}
+
+	getEnglishSubIndex(file: string) {
+		const result = child_process.spawnSync("ffprobe", [
+			"-v", "error",
+			"-select_streams", "s",
+			"-show_entries", "stream=index:stream_tags=title,language",
+			"-of", "json",
+			file
+		]);
+		const subs = JSON.parse(String(result.stdout).trim()) as SubList;
+		subs.streams = subs.streams.sort((a, b) => a.index - b.index);
+		for (let i = 0; i < subs.streams.length; i++) {
+			subs.streams[i].subIndex = i;
+		}
+		const englishTracks = subs.streams.filter(sub => this.lowerContains(sub.tags.title, 'english') || this.lowerContains(sub.tags.language, 'english'));
+		if (englishTracks.length > 0) {
+			return englishTracks[0].subIndex;
+		}
+		const engTracks = subs.streams.filter(sub => this.lowerContains(sub.tags.title, 'eng') || this.lowerContains(sub.tags.language, 'eng'));
+		if (engTracks.length > 0) {
+			return engTracks[0].subIndex;
+		}
+		return 0;
+	}
+
 	getSubType(file: string) {
-		let result = child_process.spawnSync("ffprobe", [
+		const result = child_process.spawnSync("ffprobe", [
 			"-v", "error",
 			"-select_streams", "s:0",
 			"-show_entries", "stream=codec_name",
@@ -128,8 +173,10 @@ export class StreamServer {
 				]);
 			}
 			if (needsVideoEncode && this.hasTextSubs(this.file)) {
+				const engSubIndex = this.getEnglishSubIndex(this.file);
+				console.log("English sub index: " + engSubIndex);
 				finalOptions = finalOptions.concat([
-					"-vf", "subtitles=" + this.escapeFfmpeg(this.file)
+					"-vf", "subtitles=" + this.escapeFfmpeg(this.file) + ":si=" + engSubIndex,
 				]);
 			}
 
