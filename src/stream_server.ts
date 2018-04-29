@@ -201,10 +201,15 @@ export class StreamServer {
 			this.ffmpeg.stderr.on('data', data => {
 				console.log(data);
 			});
-			req.on('close', () => this.kill());
-			req.on('end', () => this.kill());
+			req.on('close', () => this.restart());
+			req.on('end', () => this.restart());
 		});
 		this.httpServer.listen(this.port);
+	}
+
+	async restart() {
+		await this.kill();
+		this.start();
 	}
 
 	kill(): Promise<void> {
