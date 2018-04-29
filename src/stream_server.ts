@@ -23,7 +23,7 @@ export class StreamServer {
 	ffmpeg: child_process.ChildProcess;
 	httpServer: http.Server;
 
-	constructor(private port: number, private file: string, private avsTemplate: string, private enhance: boolean = false) {
+	constructor(private port: number, private file: string, private avsTemplate: string, private enhance: boolean = true) {
 	}
 
 	escapeFfmpeg(input: string) {
