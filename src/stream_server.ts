@@ -136,10 +136,12 @@ export class StreamServer {
 				console.log(avs);
 
 				finalOptions = [
+					"-hwaccel", "cuvid",
 					"-i", avs
 				];
 			} else {
 				finalOptions = [
+					"-hwaccel", "cuvid",
 					"-i", this.file
 				];
 			}
@@ -156,10 +158,16 @@ export class StreamServer {
 
 			if (needsVideoEncode) {
 				finalOptions = finalOptions.concat([
+					//"-filter:v", "scale_npp=w=1920:h=1080:format=yuv444p16:interp_algo=lanczos",
 					"-c:v", "hevc_nvenc",
-					"-preset", "llhq",
-					"-rc", "constqp",
-					"-qp", "15"
+					"-pix_fmt", "p010le",
+					"-profile:v", "main10",
+					"-preset", "slow",
+					"-rc", "vbr_hq",
+					"-qmin:v", "16",
+					"-qmax:v", "12",
+					"-rc-lookahead", "32",
+					"-maxrate:v", "30M",
 				]);
 			} else {
 				finalOptions = finalOptions.concat([
