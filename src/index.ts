@@ -32,6 +32,14 @@ let serverQueue = new StreamServerQueue(port, avsTemplate);
 serverQueue.push(...files);
 serverQueue.playNext();
 
+const rl = require('readline').createInterface({
+	input: process.stdin,
+	output: process.stdout
+});
+
+rl.on('SIGINT', () => process.emit('SIGINT'));
+process.on('SIGINT', () => process.exit());
+
 internalIp.v4().then(ip => {
 	const address = `http://${ip}:${port}/video.mp4`;
 	function chromecastPlay() {
@@ -44,13 +52,14 @@ internalIp.v4().then(ip => {
 			});
 
 			p.on('status', async s => {
+				console.log(s);
 				if (s.playerState === 'IDLE' && s.idleReason === 'FINISHED') {
 					await serverQueue.playNext() ? chromecastPlay() : process.exit(0);
 				}
 			});
 
 			process.stdin.setRawMode(true);
-			process.stdin.on('data', d => {
+			process.stdin.on('data', async d => {
 				if (String(d) === ' ') {
 					if (paused) {
 						p.play();
@@ -59,6 +68,8 @@ internalIp.v4().then(ip => {
 						p.pause();
 						paused = true;
 					}
+				} else if (String(d) === 'n') {
+					await serverQueue.playNext() ? chromecastPlay() : process.exit(0);
 				}
 			});
 		});
