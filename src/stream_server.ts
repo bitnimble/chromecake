@@ -23,7 +23,7 @@ export class StreamServer {
 	ffmpeg: child_process.ChildProcess;
 	httpServer: http.Server;
 
-	constructor(private port: number, private file: string, private avsTemplate: string, private enhance: boolean = true) {
+	constructor(private port: number, private file: string, private avsTemplate: string, private enhance: boolean = true, private position: number = 0) {
 	}
 
 	escapeFfmpeg(input: string) {
@@ -141,7 +141,7 @@ export class StreamServer {
 				];
 			} else {
 				finalOptions = [
-					"-hwaccel", "cuvid",
+					"-hwaccel", "cuda",
 					"-i", this.file
 				];
 			}

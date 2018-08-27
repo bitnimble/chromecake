@@ -24,6 +24,14 @@ export class StreamServerQueue {
 		return true;
 	}
 
+	async seek(position) {
+		await this.stop();
+		const currentMedia = this.queue[0];
+		this.currentStreamServer = new StreamServer(this.port, currentMedia, this.avsTemplate);
+		this.currentStreamServer.start();
+		return true;
+	}
+
 	stop() {
 		if (this.currentStreamServer) {
 			return this.currentStreamServer.kill();

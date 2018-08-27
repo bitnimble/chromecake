@@ -9,5 +9,9 @@
     "find-process": "^1.1.0",
     "internal-ip": "^3.0.1",
     "temp-write": "^3.4.0"
+  },
+  "bin": "out/index.js",
+  "pkg": {
+    "assets": "src/template.avs"
   }
 }

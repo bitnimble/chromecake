@@ -74,6 +74,12 @@ internalIp.v4().then(ip => {
 					}
 				} else if (String(d) === 'n') {
 					await serverQueue.playNext() ? chromecastPlay() : process.exit(0);
+				} else if (String(d) == 'p') {
+					//await serverQueue.seek(1803);
+					await p.seek(1083, (err, status) => {
+						console.log(err);
+						console.log(status);
+					});
 				}
 			});
 		});
