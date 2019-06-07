@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const port = 9020;
-const player = chromecastPlayer();
+const player = chromecastPlayer({ address: '192.168.1.25 '});
 
 if (process.argv.length < 3) {
 	console.log('Not enough arguments. Please supply a path.');
@@ -25,10 +25,14 @@ if (fs.statSync(media).isDirectory()) {
 	files = [media];
 }
 console.log(files);
+const enhance = process.argv[3] === 'enhance';
+if (enhance) {
+	console.log('Enhancement mode enabled!');
+}
 
 const avsTemplate = String(fs.readFileSync(path.join(__dirname, 'template.avs')));
 
-let serverQueue = new StreamServerQueue(port, avsTemplate);
+let serverQueue = new StreamServerQueue(port, avsTemplate, enhance);
 serverQueue.push(...files);
 serverQueue.playNext();
 

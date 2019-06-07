@@ -4,7 +4,7 @@ export class StreamServerQueue {
 	currentStreamServer: StreamServer;
 	queue: string[] = [];
 
-	constructor(private port: number, private avsTemplate: string) { }
+	constructor(private port: number, private avsTemplate: string, private enhance: boolean) { }
 
 	push(...filepaths: string[]) {
 		this.queue.push(...filepaths);
@@ -19,7 +19,7 @@ export class StreamServerQueue {
 			return false;
 		}
 		console.log(`Playing ${nextMedia}`);
-		this.currentStreamServer = new StreamServer(this.port, nextMedia, this.avsTemplate);
+		this.currentStreamServer = new StreamServer(this.port, nextMedia, this.avsTemplate, this.enhance);
 		this.currentStreamServer.start();
 		return true;
 	}
@@ -27,7 +27,7 @@ export class StreamServerQueue {
 	async seek(position) {
 		await this.stop();
 		const currentMedia = this.queue[0];
-		this.currentStreamServer = new StreamServer(this.port, currentMedia, this.avsTemplate);
+		this.currentStreamServer = new StreamServer(this.port, currentMedia, this.avsTemplate, this.enhance);
 		this.currentStreamServer.start();
 		return true;
 	}

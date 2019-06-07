@@ -1,7 +1,5 @@
 import * as http from 'http';
 import * as child_process from 'child_process';
-import * as fs from 'fs';
-import * as findProcess from 'find-process';
 import * as tempWrite from 'temp-write';
 
 type SubtitleTags = {
@@ -23,7 +21,7 @@ export class StreamServer {
 	ffmpeg: child_process.ChildProcess;
 	httpServer: http.Server;
 
-	constructor(private port: number, private file: string, private avsTemplate: string, private enhance: boolean = true, private position: number = 0) {
+	constructor(private port: number, private file: string, private avsTemplate: string, private enhance: boolean, private position: number = 0) {
 	}
 
 	escapeFfmpeg(input: string) {
@@ -87,7 +85,7 @@ export class StreamServer {
 
 	hasTextSubs(file: string) {
 		const subs = this.getSubType(file);
-		console.log(subs);
+		console.log(`Subtitle format: ${subs}`);
 		return subs !== '' && subs !== 'hdmv_pgs_subtitle';
 	}
 
@@ -100,12 +98,21 @@ export class StreamServer {
 			file
 		]);
 		const codec = String(result.stdout).trim();
-		console.log(codec);
-		return codec !== '' && codec !== 'png' && codec !== 'jpg';
+		console.log(`Video codec: ${codec}`);
+		return codec !== '' && codec !== 'png' && codec !== 'jpg' && codec !== 'hevc';
 	}
 
 	needsAudioEncode(file) {
-		return true;
+		let result = child_process.spawnSync("ffprobe", [
+			"-v", "error",
+			"-select_streams", "a:0",
+			"-show_entries", "stream=codec_name",
+			"-of", "default=noprint_wrappers=1:nokey=1",
+			file
+		]);
+		const codec = String(result.stdout).trim();
+		console.log(`Audio codec: ${codec}`);
+		return codec !== '' && codec !== 'dts';
 	}
 
 	createAvsFile(file): string {
@@ -141,14 +148,16 @@ export class StreamServer {
 				];
 			} else {
 				finalOptions = [
-					"-hwaccel", "cuda",
+					"-hwaccel", "cuvid",
 					"-i", this.file
 				];
 			}
 
-			const needsVideoEncode = this.needsVideoEncode(this.file);
+			const hasImageSubs = this.hasImageSubs(this.file);
+			const hasTextSubs = this.hasTextSubs(this.file);
+			const needsVideoEncode = hasImageSubs || hasTextSubs || this.needsVideoEncode(this.file);
 
-			if (needsVideoEncode && this.hasImageSubs(this.file)) {
+			if (hasImageSubs) {
 				finalOptions = finalOptions.concat([
 					"-filter_complex", "[0:v][0:s]overlay[v]",
 					"-map", "[v]",
@@ -162,25 +171,25 @@ export class StreamServer {
 					"-c:v", "hevc_nvenc",
 					"-pix_fmt", "p010le",
 					"-profile:v", "main10",
-					"-preset", "slow",
+					"-preset", "hq",
 					"-rc", "vbr_hq",
 					"-qmin:v", "16",
 					"-qmax:v", "12",
 					"-rc-lookahead", "32",
-					"-maxrate:v", "30M",
+					"-maxrate:v", "100M",
 				]);
 			} else {
 				finalOptions = finalOptions.concat([
-					"-vn"
+					"-c:v", "copy"
 				]);
 			}
 			if (this.needsAudioEncode(this.file)) {
 				finalOptions = finalOptions.concat([
-					"-c:a", "ac3",
+					"-c:a", "aac",
 					"-b:a", "320k"
 				]);
 			}
-			if (needsVideoEncode && this.hasTextSubs(this.file)) {
+			if (hasTextSubs) {
 				const engSubIndex = this.getEnglishSubIndex(this.file);
 				console.log("English sub index: " + engSubIndex);
 				finalOptions = finalOptions.concat([
